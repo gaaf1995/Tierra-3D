@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tierra 3D</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, sphere;
+        let isDragging = false;
+        let previousMousePosition = {
+            x: 0,
+            y: 0
+        };
+
+        function init() {
+            // Creamos una escena
+            scene = new THREE.Scene();
+
+            // Creamos una cámara
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // Creamos un renderizador
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Creamos una geometría esférica
+            const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+            // Cargamos la textura
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load('earth.jpg'); // Reemplaza 'ruta_de_tu_imagen.jpg' con la ruta de tu imagen
+
+            // Creamos un material usando la textura
+            const material = new THREE.MeshBasicMaterial({ map: texture });
+
+            // Creamos la esfera y la agregamos a la escena
+            sphere = new THREE.Mesh(geometry, material);
+            scene.add(sphere);
+
+            document.addEventListener('mousedown', onDocumentMouseDown);
+            document.addEventListener('mouseup', onDocumentMouseUp);
+            document.addEventListener('mousemove', onDocumentMouseMove);
+
+            // Llamamos a la función para animar la escena
+            animate();
+        }
+
+        function onDocumentMouseDown(event) {
+            isDragging = true;
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+        }
+
+        function onDocumentMouseUp() {
+            isDragging = false;
+        }
+
+        function onDocumentMouseMove(event) {
+            if (isDragging) {
+                const deltaMove = {
+                    x: event.clientX - previousMousePosition.x,
+                    y: event.clientY - previousMousePosition.y
+                };
+
+                sphere.rotation.y += deltaMove.x * 0.01;
+                sphere.rotation.x += deltaMove.y * 0.01;
+
+                previousMousePosition = {
+                    x: event.clientX,
+                    y: event.clientY
+                };
+            }
+        }
+
+        function animate() {
+            // Hacemos que la esfera rote automáticamente incluso si no se está interactuando con el mouse
+            sphere.rotation.y += 0.005;
+
+            // Renderizamos la escena
+            renderer.render(scene, camera);
+
+            // Pedimos al navegador que llame a esta función en el siguiente fotograma
+            requestAnimationFrame(animate);
+        }
+
+        // Función para ajustar el tamaño del renderizador si cambia el tamaño de la ventana
+        window.addEventListener('resize', function() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+
+        // Inicializamos la escena al cargar la página
+        window.onload = init;
+    </script>
+</body>
+</html>
